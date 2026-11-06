@@ -1,0 +1,34 @@
+[tools]
+python = "3.14"
+uv = "latest"
+
+[tasks.bootstrap]
+description = "Install everything needed for development"
+run = [
+  "uv sync",
+  "uv run pre-commit install --hook-type pre-commit --hook-type pre-push",
+]
+
+[tasks.test]
+description = "Run tests; pass a path to run a subset"
+run = "uv run pytest"
+
+[tasks.lint]
+description = "Format and lint code (auto-fixes issues)"
+run = ["uv run ruff format .", "uv run ruff check . --fix"]
+
+[tasks.typecheck]
+description = "Check Python types"
+run = "uv run mypy"
+
+[tasks.quality]
+description = "Lint and typecheck"
+run = [{ task = "lint" }, { task = "typecheck" }]
+
+[tasks.precommit]
+description = "Run pre-commit hooks"
+run = "uv run pre-commit run --all-files"
+
+[tasks.agent-docs]
+description = "Regenerate CLAUDE.md and AGENTS.md from source"
+run = "uv run python scripts/build_agent_docs.py"
