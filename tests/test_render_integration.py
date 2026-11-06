@@ -152,3 +152,4 @@ def test_cli_lists_problems_and_fails(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "Font not available: No Such Font" in result.stderr
+    assert "Licensed fonts go in" in result.stderr

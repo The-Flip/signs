@@ -1,4 +1,7 @@
-"""Make the bundled fonts available, and check that SVG templates can get their fonts.
+"""Make our fonts available, and check that SVG templates can get their fonts.
+
+Open fonts are bundled in the repo. The repo is public, so fonts we hold a license for
+stay outside it, in the licensed font directory.
 
 Inkscape and Scribus both substitute missing fonts silently and still report success,
 so the checks have to happen here.
@@ -21,13 +24,19 @@ if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
 
 FONT_DIR = Path(__file__).parent / "fonts"
+LICENSED_FONT_DIR_VARIABLE = "SIGNS_LICENSED_FONT_DIR"
 GENERIC_FAMILIES = {"sans", "sans-serif", "serif", "monospace"}
 TEXT_ROOT_TAGS = {"text", "flowRoot"}
 
 
+def licensed_font_dir() -> Path:
+    configured = os.environ.get(LICENSED_FONT_DIR_VARIABLE)
+    return Path(configured) if configured else Path.home() / ".local/share/signs/fonts"
+
+
 @contextmanager
 def font_environment() -> Iterator[dict[str, str]]:
-    """Yield an environment in which programs see the system fonts plus the bundled ones."""
+    """Yield an environment in which programs see system, bundled and licensed fonts."""
     with TemporaryDirectory(prefix="signs-fonts-") as work:
         config = Path(work) / "fonts.conf"
         config.write_text(
@@ -36,6 +45,7 @@ def font_environment() -> Iterator[dict[str, str]]:
             # The Linux location; signs targets Linux because of xvfb
             '  <include ignore_missing="yes">/etc/fonts/fonts.conf</include>\n'
             f"  <dir>{html.escape(str(FONT_DIR))}</dir>\n"
+            f"  <dir>{html.escape(str(licensed_font_dir()))}</dir>\n"
             f"  <cachedir>{html.escape(work)}/cache</cachedir>\n"
             "</fontconfig>\n"
         )

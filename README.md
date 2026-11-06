@@ -28,4 +28,8 @@ uv run signs render general-sign-template.sla -o sign.pdf
 
 If a template has a missing font, cut-off text, or a missing image, `signs render` lists the problems and writes no PDF.
 
+## Fonts
+
+Open fonts are included. Fonts that can't be redistributed, such as Arial, must never be committed, because this repo is public. Put your licensed copies in `~/.local/share/signs/fonts`, or set `SIGNS_LICENSED_FONT_DIR` to another directory.
+
 Run `mise tasks` to list the development commands.

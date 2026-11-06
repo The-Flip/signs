@@ -2,7 +2,15 @@ from pathlib import Path
 
 import pytest
 
-from signs.fonts import font_environment, font_pattern, is_font_available, text_font_families
+from signs import fonts
+from signs.fonts import (
+    LICENSED_FONT_DIR_VARIABLE,
+    font_environment,
+    font_pattern,
+    is_font_available,
+    licensed_font_dir,
+    text_font_families,
+)
 from signs.problems import RenderError
 
 
@@ -98,6 +106,27 @@ def test_generic_families_are_always_available() -> None:
 def test_bundled_font_is_available() -> None:
     with font_environment() as env:
         assert is_font_available("Bai Jamjuree", env)
+
+
+def test_carlito_is_bundled() -> None:
+    with font_environment() as env:
+        assert is_font_available("Carlito", env)
+
+
+def test_fonts_in_the_licensed_directory_are_available(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(LICENSED_FONT_DIR_VARIABLE, str(fonts.FONT_DIR))
+    monkeypatch.setattr(fonts, "FONT_DIR", tmp_path)
+
+    with font_environment() as env:
+        assert is_font_available("Bai Jamjuree", env)
+
+
+def test_licensed_directory_defaults_to_user_data(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(LICENSED_FONT_DIR_VARIABLE, raising=False)
+
+    assert licensed_font_dir() == Path.home() / ".local/share/signs/fonts"
 
 
 def test_fallback_does_not_count_as_available() -> None:

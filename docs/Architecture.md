@@ -33,7 +33,11 @@ Things that aren't obvious:
 
 `scribus_scripts/` runs inside Scribus's own Python, so it can only use the standard library and `scribus`, and it reports back through a JSON file. It has its own directory because Python puts a script's directory on `sys.path`, and nothing there may shadow `scribus`.
 
-Fonts we can redistribute are bundled in `src/signs/fonts/` and added through a temporary fontconfig file, so rendering doesn't depend on what's installed. Keep every weight of a family: a sign can use any of them, and the checks work at family level.
+Rendering sees fonts from three places, through a temporary fontconfig file:
+
+- **Bundled:** open fonts in `src/signs/fonts/`, one folder per family with its license. Keep every weight: a sign can use any of them, and the checks work at family level.
+- **Licensed:** fonts we can use but not redistribute, such as Arial. The repo is public, so these live outside it, in `~/.local/share/signs/fonts` or wherever `SIGNS_LICENSED_FONT_DIR` points. A server deployment needs them supplied the same way.
+- **System:** whatever the machine has installed.
 
 Known limits:
 
@@ -44,6 +48,10 @@ Known limits:
 - SLA checks skip master pages. No current template has images there.
 
 All external programs run through `run_tool` in `tools.py`, which handles timeouts and interrupts by killing the whole process group.
+
+## Templates
+
+Templates aren't kept in this repo, apart from test fixtures. They live outside it for now and will eventually become data rather than checked-in files.
 
 ## Interfaces
 

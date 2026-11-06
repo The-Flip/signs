@@ -127,6 +127,12 @@ GitHub access:
 
 - Use the `gh` CLI for GitHub operations (listing/viewing/creating issues, PRs, commits, files).
 
+## Repository
+
+This project is in this GitHub repo: <https://github.com/The-Flip/signs>
+
+- Repository owner=`The-Flip`, repo=`signs`
+
 ## Project Structure
 
 ```text
@@ -155,4 +161,5 @@ Always follow these rules:
 - **Use Mixins, not base classes**: for shared behavior, use mixins (classes that call `super()`) instead of base classes. Python's MRO breaks when base classes don't call `super()` - sibling classes get skipped silently.
 - **Dependency compatibility**: "latest stable" is the default, but verify compatibility with existing pins before bumping. Check changelogs for breaking changes when jumping major versions.
 - **Never let a sign fail silently**: Inkscape and Scribus report success on wrong output, so anything that can spoil a printed sign needs a check that stops the render. See [`docs/Architecture.md`](docs/Architecture.md).
+- **Never commit licensed fonts**: this repo is public, so only openly licensed fonts go in `src/signs/fonts/`. See [`docs/Architecture.md`](docs/Architecture.md).
 - **Keep the CLI thin**: sign logic belongs in library modules so the future web interface can reuse it. See [`docs/Architecture.md`](docs/Architecture.md).
