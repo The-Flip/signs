@@ -9,8 +9,10 @@ It starts as a CLI app and will gain a web interface later. See [`docs/Architect
 Requires [mise](https://mise.jdx.dev/), which installs Python and [uv](https://docs.astral.sh/uv/), plus these system packages:
 
 ```bash
-sudo apt install inkscape scribus xvfb fontconfig poppler-utils
+sudo apt install inkscape scribus xvfb fontconfig
 ```
+
+The integration tests also need `poppler-utils`.
 
 Scribus must be 1.6.x. Then:
 
@@ -22,11 +24,11 @@ uv run signs --help
 ## Rendering a sign
 
 ```bash
-uv run signs render staff-only.svg
-uv run signs render general-sign-template.sla -o sign.pdf
+uv run signs render tests/fixtures/staff-only.svg
+uv run signs render tests/fixtures/donation-box.sla -o sign.pdf
 ```
 
-If a template has a missing font, cut-off text, or a missing image, `signs render` lists the problems and writes no PDF.
+If a template has a missing font or image, or cut-off text in a Scribus file, `signs render` lists the problems and writes no PDF. See the known limits in [`docs/Architecture.md`](docs/Architecture.md).
 
 ## Fonts
 

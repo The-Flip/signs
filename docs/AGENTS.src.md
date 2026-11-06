@@ -186,7 +186,8 @@ signs/
 │   ├── cli.py     # Command-line entry point
 │   ├── render.py  # Picks an exporter and writes the PDF
 │   ├── *_export.py  # One exporter per app
-│   ├── fonts.py, svg.py  # Template checks done in Python
+│   ├── fonts.py   # Font setup, and the SVG font check
+│   ├── svg.py     # SVG parsing, and the SVG image check
 │   ├── problems.py  # Shared errors and check results
 │   ├── tools.py   # The only place that runs external programs
 │   ├── fonts/     # Bundled fonts

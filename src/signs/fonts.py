@@ -16,7 +16,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
-from signs.problems import Problem, RenderError
+from signs.problems import Problem, ProblemKind, RenderError
 from signs.svg import local_name, parse_svg
 from signs.tools import run_tool
 
@@ -31,7 +31,8 @@ TEXT_ROOT_TAGS = {"text", "flowRoot"}
 
 def licensed_font_dir() -> Path:
     configured = os.environ.get(LICENSED_FONT_DIR_VARIABLE)
-    return Path(configured) if configured else Path.home() / ".local/share/signs/fonts"
+    # Absolute, because fontconfig reads a relative <dir> from its config file's directory
+    return Path(configured).resolve() if configured else Path.home() / ".local/share/signs/fonts"
 
 
 @contextmanager
@@ -111,7 +112,7 @@ def is_font_available(family: str, env: Mapping[str, str]) -> bool:
 
 def check_svg_fonts(svg_path: Path, env: Mapping[str, str]) -> list[Problem]:
     return [
-        Problem("font", f"Font not available: {family}")
+        Problem(ProblemKind.FONT, f"Font not available: {family}")
         for family in sorted(text_font_families(svg_path))
         if not is_font_available(family, env)
     ]

@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from signs.problems import Problem, RenderError, TemplateCheckError
+from signs.problems import Problem, ProblemKind, RenderError, TemplateCheckError
 from signs.tools import run_tool
 
 # Kept in its own directory because Python puts a script's directory on sys.path, and
@@ -16,8 +16,8 @@ LOG_LINES_TO_SHOW = 20
 
 def parse_report(report: str) -> list[Problem]:
     try:
-        return [Problem(item["kind"], item["message"]) for item in json.loads(report)]
-    except (json.JSONDecodeError, KeyError, TypeError) as error:
+        return [Problem(ProblemKind(item["kind"]), item["message"]) for item in json.loads(report)]
+    except (KeyError, TypeError, ValueError) as error:
         raise RenderError(f"Scribus wrote an unreadable report: {error}") from error
 
 

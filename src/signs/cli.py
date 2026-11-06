@@ -6,9 +6,8 @@ from typing import Annotated
 
 import typer
 
-from signs.fonts import licensed_font_dir
 from signs.problems import RenderError, TemplateCheckError
-from signs.render import render
+from signs.render import describe_problems, render
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -47,10 +46,8 @@ def render_sign(
     try:
         render(source, dest)
     except TemplateCheckError as error:
-        for problem in error.problems:
-            typer.echo(problem.message, err=True)
-        if any(problem.kind == "font" for problem in error.problems):
-            typer.echo(f"Licensed fonts go in {licensed_font_dir()}", err=True)
+        for line in describe_problems(error.problems):
+            typer.echo(line, err=True)
         raise typer.Exit(1) from error
     except RenderError as error:
         typer.echo(str(error), err=True)

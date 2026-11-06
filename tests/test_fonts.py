@@ -132,3 +132,12 @@ def test_licensed_directory_defaults_to_user_data(monkeypatch: pytest.MonkeyPatc
 def test_fallback_does_not_count_as_available() -> None:
     with font_environment() as env:
         assert not is_font_available("No Such Font", env)
+
+
+def test_relative_licensed_font_dir_is_made_absolute(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv(LICENSED_FONT_DIR_VARIABLE, "licensed")
+
+    assert licensed_font_dir() == tmp_path / "licensed"

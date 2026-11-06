@@ -13,7 +13,7 @@ Both should go through the same rendering path. A static sign is the simple case
 
 ## Rendering
 
-Templates are Inkscape SVG and Scribus SLA files, and those apps do the rendering: no other renderer reproduces their layouts reliably. `render()` in `render.py` picks an exporter by file suffix, and writes to `dest` only once everything has passed.
+Templates are Inkscape SVG and Scribus SLA files, and those apps do the rendering: no other renderer reproduces their layouts reliably. `render()` in `render.py` picks an exporter by file suffix, and moves the PDF to `dest` in one step only once everything has passed. The output must be a `.pdf`, so a mistyped `-o` can't replace a template.
 
 Headless export has no safety net, so we check templates ourselves. A failed check raises `TemplateCheckError` and produces no PDF.
 
@@ -46,6 +46,7 @@ Known limits:
 - The cut-off text check assumes frames aren't linked. No current template links frames.
 - SVG fonts set in `<style>` blocks aren't seen, and SVG text with no font set uses Inkscape's default. No current template does the former.
 - SLA checks skip master pages. No current template has images there.
+- An empty SLA image frame passes, because it may be a deliberate placeholder.
 
 All external programs run through `run_tool` in `tools.py`, which handles timeouts and interrupts by killing the whole process group.
 

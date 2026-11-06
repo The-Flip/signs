@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from signs.problems import Problem, RenderError
-from signs.render import render
+from signs.fonts import LICENSED_FONT_DIR_VARIABLE
+from signs.problems import Problem, ProblemKind, RenderError
+from signs.render import describe_problems, publish, render
 from signs.scribus_export import parse_report
 
 
@@ -25,6 +26,57 @@ def test_directory_as_output_is_refused(tmp_path: Path) -> None:
         render(source, tmp_path)
 
 
+def test_output_that_is_not_a_pdf_is_refused_leaving_the_template_alone(tmp_path: Path) -> None:
+    source = tmp_path / "sign.svg"
+    source.write_text("<svg/>")
+
+    with pytest.raises(RenderError, match="Output must be a .pdf file"):
+        render(source, source)
+
+    assert source.read_text() == "<svg/>"
+
+
+def test_publish_replaces_the_old_pdf_and_leaves_nothing_else(tmp_path: Path) -> None:
+    staged = tmp_path / "staged" / "sign.pdf"
+    staged.parent.mkdir()
+    staged.write_text("new")
+    output = tmp_path / "out"
+    output.mkdir()
+    (output / "sign.pdf").write_text("old")
+
+    publish(staged, output / "sign.pdf")
+
+    assert [path.read_text() for path in output.iterdir()] == ["new"]
+
+
+def test_publish_reports_an_unwritable_output(tmp_path: Path) -> None:
+    staged = tmp_path / "sign.pdf"
+    staged.write_text("new")
+
+    with pytest.raises(RenderError, match="Could not write"):
+        publish(staged, tmp_path / "absent" / "sign.pdf")
+
+
+def test_font_problems_say_where_licensed_fonts_go(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(LICENSED_FONT_DIR_VARIABLE, str(tmp_path))
+    problem = Problem(ProblemKind.FONT, "Font not available: Arial")
+
+    assert describe_problems([problem]) == [problem.message, f"Licensed fonts go in {tmp_path}"]
+
+
+def test_other_problems_get_no_font_advice() -> None:
+    problem = Problem(ProblemKind.IMAGE, "Image not found: logo.png")
+
+    assert describe_problems([problem]) == [problem.message]
+
+
+def test_unknown_problem_kind_in_scribus_report_gives_a_clear_error() -> None:
+    with pytest.raises(RenderError, match="unreadable report"):
+        parse_report('[{"kind": "fnot", "message": "Font not available: Arial"}]')
+
+
 def test_unreadable_scribus_report_gives_a_clear_error() -> None:
     with pytest.raises(RenderError, match="unreadable report"):
         parse_report('[{"kind": "fo')
@@ -33,4 +85,4 @@ def test_unreadable_scribus_report_gives_a_clear_error() -> None:
 def test_parses_scribus_report() -> None:
     report = '[{"kind": "font", "message": "Font not available: Arial"}]'
 
-    assert parse_report(report) == [Problem("font", "Font not available: Arial")]
+    assert parse_report(report) == [Problem(ProblemKind.FONT, "Font not available: Arial")]

@@ -79,7 +79,7 @@ Guide the user through each step of the checklist systematically. For each step:
 
 **Run Tests:**
 
-- Run `mise run test` to execute test suite
+- Run `mise run test-all` to execute the test suite, including the integration tests
 - Report pass/fail status
 - If failures exist, STOP and require fixes before proceeding
 
@@ -100,7 +100,7 @@ All steps must pass before PR creation:
 - Code follows documented patterns
 - No critical antipatterns detected (or acknowledged/fixed)
 - Clean code review passed (or issues addressed)
-- All tests passing (`mise run test`)
+- All tests passing (`mise run test-all`)
 - Pre-commit hooks pass (`mise run precommit`)
 
 ## Final Output
