@@ -180,6 +180,7 @@ This project is in this GitHub repo: <https://github.com/The-Flip/signs>
 
 ```text
 signs/
+├── data/          # Machine sign content, until the app has a data store
 ├── docs/          # Project docs, including the source for CLAUDE.md and AGENTS.md
 ├── scripts/       # Development scripts
 ├── src/signs/     # Application package
