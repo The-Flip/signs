@@ -9,6 +9,7 @@ description = "Sign management and printing for The Flip museum"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "defusedxml>=0.7.1",
     "typer>=0.28.0",
 ]
 
@@ -39,6 +40,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["S101"]    # Allow asserts in tests
 "scripts/*.py" = ["T201"]  # Allow print in build scripts
+"src/signs/tools.py" = ["S603"]  # Allow subprocess for trusted binaries resolved with shutil.which
 
 [tool.ruff.lint.isort]
 known-first-party = ["signs"]
@@ -52,9 +54,15 @@ line-ending = "lf"
 strict = true
 files = ["src", "tests", "scripts"]
 
+# Only exists inside Scribus's own Python
+[[tool.mypy.overrides]]
+module = "scribus"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--strict-markers"
+addopts = "--strict-markers -m 'not integration'"
+markers = ["integration: needs Inkscape, Scribus and xvfb (run with `mise run test-all`)"]
 
 [dependency-groups]
 dev = [
@@ -62,4 +70,5 @@ dev = [
     "pre-commit>=4.7.0",
     "pytest>=9.2.0",
     "ruff>=0.17.4",
+    "types-defusedxml>=0.7.0.20260504",
 ]

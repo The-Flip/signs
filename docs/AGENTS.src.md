@@ -71,10 +71,10 @@ Examples:
 
 STOP and read the relevant doc before writing code. Code that doesn't follow documented patterns will need to be rewritten.
 
-| Task                | Read First                                     |
-| ------------------- | ---------------------------------------------- |
-| System architecture | [`docs/Architecture.md`](docs/Architecture.md) |
-| Writing tests       | [`docs/Testing.md`](docs/Testing.md)           |
+| Task                            | Read First                                     |
+| ------------------------------- | ---------------------------------------------- |
+| Architecture, rendering, checks | [`docs/Architecture.md`](docs/Architecture.md) |
+| Writing tests                   | [`docs/Testing.md`](docs/Testing.md)           |
 
 Follow the patterns in these docs exactly. Do not introduce new conventions without asking. Update docs when changing behavior.
 
@@ -114,14 +114,15 @@ Tools are managed by [mise](https://mise.jdx.dev/) (`mise.toml`) and Python pack
 mise run bootstrap
 ```
 
-This installs Python and uv, syncs packages into `.venv`, and sets up pre-commit hooks. After that, `uv run signs --help` runs the app.
+This installs Python and uv, syncs packages into `.venv`, and sets up pre-commit hooks. After that, `uv run signs --help` runs the app. Rendering also needs the system packages listed in [`README.md`](README.md); mise and uv can't manage those.
 
 ## Development Commands
 
 ```bash
 # Testing
-mise run test                    # Run test suite
+mise run test                    # Run test suite, without integration tests
 mise run test tests/test_cli.py  # Run one file, class, or function
+mise run test-all                # Run everything; needs Inkscape, Scribus and xvfb
 
 # Code Quality
 mise run lint        # Format and lint code (auto-fixes issues)
@@ -176,7 +177,14 @@ signs/
 ├── docs/          # Project docs, including the source for CLAUDE.md and AGENTS.md
 ├── scripts/       # Development scripts
 ├── src/signs/     # Application package
-│   └── cli.py     # Command-line entry point
+│   ├── cli.py     # Command-line entry point
+│   ├── render.py  # Picks an exporter and writes the PDF
+│   ├── *_export.py  # One exporter per app
+│   ├── fonts.py, svg.py  # Template checks done in Python
+│   ├── problems.py  # Shared errors and check results
+│   ├── tools.py   # The only place that runs external programs
+│   ├── fonts/     # Bundled fonts
+│   └── scribus_scripts/  # Runs inside Scribus, not the signs environment
 └── tests/
 ```
 
@@ -189,4 +197,5 @@ Always follow these rules:
 - **Secrets**: never hardcode keys, passwords or tokens. Read them from environment variables. When tests need them, generate them dynamically to avoid triggering the `detect-secrets` pre-commit hook, using `secrets.token_hex(16)`.
 - **Use Mixins, not base classes**: for shared behavior, use mixins (classes that call `super()`) instead of base classes. Python's MRO breaks when base classes don't call `super()` - sibling classes get skipped silently.
 - **Dependency compatibility**: "latest stable" is the default, but verify compatibility with existing pins before bumping. Check changelogs for breaking changes when jumping major versions.
+- **Never let a sign fail silently**: Inkscape and Scribus report success on wrong output, so anything that can spoil a printed sign needs a check that stops the render. See [`docs/Architecture.md`](docs/Architecture.md).
 - **Keep the CLI thin**: sign logic belongs in library modules so the future web interface can reuse it. See [`docs/Architecture.md`](docs/Architecture.md).

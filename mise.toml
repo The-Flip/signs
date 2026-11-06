@@ -13,6 +13,10 @@ run = [
 description = "Run tests; pass a path to run a subset"
 run = "uv run pytest"
 
+[tasks.test-all]
+description = "Run tests including integration tests; needs Inkscape, Scribus and xvfb"
+run = "uv run pytest -m ''"
+
 [tasks.lint]
 description = "Format and lint code (auto-fixes issues)"
 run = ["uv run ruff format .", "uv run ruff check . --fix"]

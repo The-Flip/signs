@@ -3,6 +3,9 @@
 # Run manually: mise run precommit
 # See https://pre-commit.com for more information
 
+# Binary-like files that must stay exactly as their source apps wrote them
+exclude: ^(tests/fixtures|src/signs/fonts)/
+
 repos:
   # Ruff - Fast Python linter and formatter
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -90,7 +93,7 @@ repos:
       # Run tests before push
       - id: pytest
         name: pytest
-        entry: uv run pytest
+        entry: uv run pytest -m ''
         language: system
         pass_filenames: false
         always_run: true

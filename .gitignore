@@ -29,5 +29,8 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 
+# Rendered signs
+/*.pdf
+
 # Claude Code's local settings
 settings.local.json
