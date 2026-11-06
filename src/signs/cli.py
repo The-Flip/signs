@@ -6,7 +6,9 @@ from typing import Annotated
 
 import typer
 
-from signs.problems import RenderError, TemplateCheckError
+from signs.flipfix import fetch_machines
+from signs.machines import check_floor, describe_floor, load_sign_content
+from signs.problems import MachineDataError, RenderError, TemplateCheckError
 from signs.render import describe_problems, render
 
 app = typer.Typer(no_args_is_help=True)
@@ -53,3 +55,22 @@ def render_sign(
         typer.echo(str(error), err=True)
         raise typer.Exit(1) from error
     typer.echo(f"Wrote {dest}")
+
+
+@app.command("check-machines")
+def check_machines(
+    data: Annotated[Path, typer.Option(help="CSV of machine sign content.")] = Path(
+        "data/machines.csv"
+    ),
+) -> None:
+    """List floor machines that aren't ready for a sign."""
+    try:
+        content = load_sign_content(data)
+        report = check_floor(fetch_machines(), content)
+    except MachineDataError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(1) from error
+    for line in describe_floor(report):
+        typer.echo(line)
+    if not report.is_clean:
+        raise typer.Exit(1)

@@ -61,6 +61,8 @@ Each physical machine gets its own sign, so two machines of the same model need 
 - **FlipFix** says which machines exist and where they are. A machine is on the floor when its location is `Museum` or `Coin-op`. Read it through `GET /api/v1/machines/`, with the key in `FLIPFIX_API_KEY` in `mise.local.toml`. That file is git-ignored; never commit the key.
 - **`data/machines.csv`** holds what the sign says, including for machines that are off the floor now. It's a stopgap until the app has a data store, and it's now the source of truth: it was copied once from the Google Sheet, so edit the CSV rather than the sheet.
 
+`signs check-machines` compares the two. A floor machine is incomplete if it has no row, no `MainText`, or placeholder `MainText` in square brackets. It also reports machines at a location it doesn't recognize, so a renamed location can't hide a machine, and rows whose `asset_id` FlipFix doesn't know, since those are probably typos. It lists everything it finds and exits 1 if there's anything to list.
+
 `MainText` is markdown limited to `*italic*`, `**bold**` and blank lines between paragraphs, with `\` escaping a literal `*` or `\`. Other columns are plain text. A blank `Produced`, or a blank `Info` with its `Heading`, drops that line from the sign.
 
 ## Interfaces
