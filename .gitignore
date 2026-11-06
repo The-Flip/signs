@@ -34,3 +34,6 @@ htmlcov/
 
 # Claude Code's local settings
 settings.local.json
+
+# Local settings and secrets
+mise.local.toml
