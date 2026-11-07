@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 import pytest
@@ -47,6 +48,50 @@ def test_publish_replaces_the_old_pdf_and_leaves_nothing_else(tmp_path: Path) ->
     publish(staged, output / "sign.pdf")
 
     assert [path.read_text() for path in output.iterdir()] == ["new"]
+
+
+def test_output_backing_a_symlinked_template_is_refused(tmp_path: Path) -> None:
+    template = tmp_path / "sign.svg.pdf"
+    template.write_text("<svg/>")
+    link = tmp_path / "sign.svg"
+    link.symlink_to(template)
+
+    with pytest.raises(RenderError, match="would replace the template"):
+        render(link, template)
+
+    assert template.read_text() == "<svg/>"
+
+
+def test_publish_leaves_an_unrelated_temporary_file_alone(tmp_path: Path) -> None:
+    staged = tmp_path / "staged.pdf"
+    staged.write_text("new")
+    unrelated = tmp_path / ".sign.pdf.tmp"
+    unrelated.write_text("someone else's")
+
+    publish(staged, tmp_path / "sign.pdf")
+
+    assert unrelated.read_text() == "someone else's"
+
+
+def test_interrupted_publish_leaves_nothing_behind(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    staged = tmp_path / "staged" / "sign.pdf"
+    staged.parent.mkdir()
+    staged.write_text("new")
+    output = tmp_path / "out"
+    output.mkdir()
+
+    def interrupted_copy(_: Path, unfinished: Path) -> None:
+        unfinished.write_text("ne")
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(shutil, "copyfile", interrupted_copy)
+
+    with pytest.raises(KeyboardInterrupt):
+        publish(staged, output / "sign.pdf")
+
+    assert list(output.iterdir()) == []
 
 
 def test_publish_reports_an_unwritable_output(tmp_path: Path) -> None:

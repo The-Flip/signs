@@ -9,6 +9,7 @@ class ProblemKind(StrEnum):
     """What went wrong. The Scribus script can't import this, so it repeats these values."""
 
     FONT = "font"
+    GROUP = "group"
     IMAGE = "image"
     OVERFLOW = "overflow"
 

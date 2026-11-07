@@ -81,7 +81,7 @@ Before creating a pull request:
 Run quality checks before submitting:
 
 1. `mise run quality` - format, lint, typecheck
-2. `mise run test` - run test suite
+2. `mise run test-all` - run the full test suite, including integration tests
 
 Address findings before submitting.
 
