@@ -2,7 +2,7 @@
 
 Signs manages the printed signs for The Flip museum.
 
-`signs render` turns a template into a PDF. Merging data is still to come, so parts of this doc record the intended shape; update it as the code lands.
+`signs render` turns a template into a PDF, and `signs render-machines` merges machine data into a template to print many signs.
 
 ## Kinds of Sign
 
@@ -64,7 +64,19 @@ Each physical machine gets its own sign, so two machines of the same model need 
 
 `signs check-machines` compares the two. A floor machine is incomplete if it has no row, no `MainText`, or placeholder `MainText` in square brackets. It also reports machines at a location it doesn't recognize, so a renamed location can't hide a machine, and rows whose `asset_id` FlipFix doesn't know, since those are probably typos. It lists everything it finds and exits 1 if there's anything to list.
 
-`MainText` is markdown limited to `*italic*`, `**bold**` and blank lines between paragraphs, with `\` escaping a literal `*` or `\`. Other columns are plain text. A blank `Produced`, or a blank `Info` with its `Heading`, drops that line from the sign.
+`signs render-machines` prints signs into one PDF using one template, so a run covers either a single changed sign or a whole batch. With no asset ids it prints everything ready on the floor. A named machine prints wherever it is, so a sign can be ready before the machine comes back. Machines that need another template get their own run with `--template`.
+
+Each sign is filled in and goes through `render()` separately, so every check applies and a failure names the machine. A sign that fails is left out and listed, and the rest still print. Machines without finished content are listed too. Either way the PDF is written and the command exits 1. A rendered sign must be exactly one page, so one bad sign can't shift the rest of a print run.
+
+Filling a template (`sla_fill.py`):
+
+- The `%Heading%` line repeats for each `HeadingN` with a non-blank `InfoN`.
+- A line whose placeholders are all blank is dropped.
+- `%MainText%` must be alone on its line, so it always gets its markup turned into fonts.
+- A template placeholder that isn't a CSV column stops the sign, as does a template with no `%MainText%`, an `InfoN` with no heading, or `MainText` markup that doesn't parse. Raw markup can't reach a printed sign.
+- Bold and italic in `MainText` become the matching font in the family, such as `Bai Jamjuree SemiBold Italic`. The template's font must be named `Family Weight`, and the font checks catch a family without that face.
+
+`MainText` is markdown limited to `*italic*`, `**bold**`, `***bold italic***` and blank lines between paragraphs, with `\` escaping a literal `*` or `\`. Other columns are plain text. A blank `Produced`, or a blank `Info` with its `Heading`, drops that line from the sign.
 
 ## Interfaces
 

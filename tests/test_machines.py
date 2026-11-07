@@ -9,6 +9,7 @@ from signs.machines import (
     check_floor,
     describe_floor,
     load_sign_content,
+    plan_signs,
 )
 from signs.problems import MachineDataError
 
@@ -162,3 +163,35 @@ def test_describes_every_problem_and_the_total() -> None:
         "M9999: in the machine data, but not in FlipFix",
         "1 of 2 floor machines are ready for a sign",
     ]
+
+
+def test_plan_defaults_to_ready_floor_machines() -> None:
+    plan = plan_signs([ON_FLOOR, IN_STORAGE], {"M0001": WRITTEN, "M0031": WRITTEN})
+
+    assert [sign.machine for sign in plan.signs] == [ON_FLOOR]
+
+
+def test_plan_lists_incomplete_floor_machines() -> None:
+    other = Machine("M0002", "Carom", "Museum")
+
+    plan = plan_signs([ON_FLOOR, other], {"M0001": WRITTEN})
+
+    assert plan.incomplete == [IncompleteMachine(other, "no row in the machine data")]
+
+
+def test_named_machine_prints_even_off_the_floor() -> None:
+    plan = plan_signs([ON_FLOOR, IN_STORAGE], {"M0031": WRITTEN}, ["m0031"])
+
+    assert [sign.machine for sign in plan.signs] == [IN_STORAGE]
+    assert plan.incomplete == []
+
+
+def test_naming_an_unknown_machine_is_an_error() -> None:
+    with pytest.raises(MachineDataError, match="no machine M9999"):
+        plan_signs([ON_FLOOR], {"M0001": WRITTEN}, ["M9999"])
+
+
+def test_naming_a_machine_twice_prints_it_once() -> None:
+    plan = plan_signs([ON_FLOOR], {"M0001": WRITTEN}, ["M0001", "m0001"])
+
+    assert [sign.machine for sign in plan.signs] == [ON_FLOOR]

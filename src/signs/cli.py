@@ -7,6 +7,7 @@ from typing import Annotated
 import typer
 
 from signs.flipfix import fetch_machines
+from signs.machine_signs import describe_run, print_machine_signs
 from signs.machines import check_floor, describe_floor, load_sign_content
 from signs.problems import MachineDataError, RenderError, TemplateCheckError
 from signs.render import describe_problems, render
@@ -73,4 +74,34 @@ def check_machines(
     for line in describe_floor(report):
         typer.echo(line)
     if not report.is_clean:
+        raise typer.Exit(1)
+
+
+@app.command("render-machines")
+def render_machines(
+    template: Annotated[
+        Path,
+        typer.Option(envvar="SIGNS_MACHINE_TEMPLATE", help="Scribus template for these signs."),
+    ],
+    asset_ids: Annotated[
+        list[str] | None,
+        typer.Argument(help="Machines to print. Defaults to everything on the floor."),
+    ] = None,
+    output: Annotated[Path, typer.Option("--output", "-o", help="PDF to write.")] = Path(
+        "machine-signs.pdf"
+    ),
+    data: Annotated[Path, typer.Option(help="CSV of machine sign content.")] = Path(
+        "data/machines.csv"
+    ),
+) -> None:
+    """Print machine signs into one PDF, listing any that can't be printed."""
+    typer.echo("Rendering signs...")
+    try:
+        run = print_machine_signs(template, output, data, asset_ids or ())
+    except (MachineDataError, RenderError) as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(1) from error
+    for line in describe_run(run, output):
+        typer.echo(line)
+    if not run.is_clean:
         raise typer.Exit(1)

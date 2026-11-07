@@ -8,6 +8,9 @@ import pytest
 from typer.testing import CliRunner
 
 from signs.cli import app
+from signs.flipfix import Machine
+from signs.machine_signs import render_signs
+from signs.machines import PlannedSign, SignPlan
 from signs.problems import RenderError, TemplateCheckError
 from signs.render import render
 from signs.tools import run_tool
@@ -163,4 +166,57 @@ def test_grouped_frames_are_refused(tmp_path: Path) -> None:
         render(SLA_WITH_GROUP, output)
 
     assert problem_kinds(caught.value) == {"group"}
+    assert not output.exists()
+
+
+def sign_content(main_text: str) -> dict[str, str]:
+    return {
+        "Title": "Carom",
+        "Manufacturer": "Bally",
+        "Address": "Chicago",
+        "Month": "March",
+        "Year": "1937",
+        "Produced": "",
+        "Ownership": "The Flip Collection",
+        "Heading1": "Design by",
+        "Info1": "Raymond T Maloney",
+        "MainText": main_text,
+    }
+
+
+def test_signs_join_into_one_pdf_with_real_italics(tmp_path: Path) -> None:
+    output = tmp_path / "signs.pdf"
+    signs = [
+        PlannedSign(Machine("M0001", "One", "Museum"), sign_content("A *fine* game.")),
+        PlannedSign(Machine("M0002", "Two", "Museum"), sign_content("Another game.")),
+    ]
+
+    run = render_signs(SignPlan(signs, []), SLA_WITH_IMAGE, output)
+
+    assert len(run.printed) == 2
+    assert "Pages:           2" in run_tool(["pdfinfo", str(output)], os.environ).output
+    assert "BaiJamjuree-SemiBoldItalic" in pdf_fonts(output)
+
+
+def test_sign_that_fails_is_left_out_and_named(tmp_path: Path) -> None:
+    output = tmp_path / "signs.pdf"
+    good = PlannedSign(Machine("M0001", "One", "Museum"), sign_content("A fine game."))
+    too_long = Machine("M0002", "Two", "Museum")
+    bad = PlannedSign(too_long, sign_content("Far too much to say. " * 400))
+
+    run = render_signs(SignPlan([good, bad], []), SLA_WITH_IMAGE, output)
+
+    assert run.printed == [good.machine]
+    assert [sign.machine for sign in run.failed] == [too_long]
+    assert "cut off" in run.failed[0].messages[0]
+    assert "Pages:           1" in run_tool(["pdfinfo", str(output)], os.environ).output
+
+
+def test_no_pdf_when_every_sign_fails(tmp_path: Path) -> None:
+    output = tmp_path / "signs.pdf"
+    bad = PlannedSign(Machine("M0002", "Two", "Museum"), sign_content("Too much. " * 900))
+
+    run = render_signs(SignPlan([bad], []), SLA_WITH_IMAGE, output)
+
+    assert run.printed == []
     assert not output.exists()

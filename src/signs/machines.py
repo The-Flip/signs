@@ -2,7 +2,7 @@
 
 import csv
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -31,6 +31,18 @@ class FloorReport:
     @property
     def is_clean(self) -> bool:
         return not (self.incomplete or self.unplaced or self.unknown_asset_ids)
+
+
+@dataclass(frozen=True)
+class PlannedSign:
+    machine: Machine
+    content: SignContent
+
+
+@dataclass(frozen=True)
+class SignPlan:
+    signs: list[PlannedSign]
+    incomplete: list[IncompleteMachine]
 
 
 def load_sign_content(path: Path) -> dict[str, SignContent]:
@@ -68,17 +80,24 @@ def why_incomplete(content: SignContent | None) -> str | None:
     return None
 
 
-def check_floor(machines: Iterable[Machine], content: Mapping[str, SignContent]) -> FloorReport:
-    """Compare what's on the floor with the sign content we have."""
-    by_asset_id = sorted(machines, key=lambda machine: machine.asset_id)
+def sort_by_readiness(
+    machines: Iterable[Machine], content: Mapping[str, SignContent]
+) -> tuple[list[Machine], list[IncompleteMachine]]:
     ready = []
     incomplete = []
-    for machine in filter(lambda machine: machine.is_on_floor, by_asset_id):
+    for machine in machines:
         reason = why_incomplete(content.get(machine.asset_id))
         if reason is None:
             ready.append(machine)
         else:
             incomplete.append(IncompleteMachine(machine, reason))
+    return ready, incomplete
+
+
+def check_floor(machines: Iterable[Machine], content: Mapping[str, SignContent]) -> FloorReport:
+    """Compare what's on the floor with the sign content we have."""
+    by_asset_id = sorted(machines, key=lambda machine: machine.asset_id)
+    ready, incomplete = sort_by_readiness((m for m in by_asset_id if m.is_on_floor), content)
     if not ready and not incomplete:
         raise MachineDataError("FlipFix lists no machines on the floor")
     unplaced = [m for m in by_asset_id if not m.is_on_floor and not m.is_off_floor]
@@ -86,11 +105,35 @@ def check_floor(machines: Iterable[Machine], content: Mapping[str, SignContent])
     return FloorReport(ready, incomplete, unplaced, sorted(content.keys() - known))
 
 
+def plan_signs(
+    machines: Sequence[Machine],
+    content: Mapping[str, SignContent],
+    asset_ids: Iterable[str] = (),
+) -> SignPlan:
+    """Choose the signs to print: the named machines, or else everything on the floor."""
+    named = list(dict.fromkeys(asset_id.upper() for asset_id in asset_ids))
+    if named:
+        by_id = {machine.asset_id: machine for machine in machines}
+        unknown = [asset_id for asset_id in named if asset_id not in by_id]
+        if unknown:
+            raise MachineDataError(f"FlipFix has no machine {', '.join(unknown)}")
+        ready, incomplete = sort_by_readiness([by_id[asset_id] for asset_id in named], content)
+    else:
+        report = check_floor(machines, content)
+        ready, incomplete = report.ready, report.incomplete
+    signs = [PlannedSign(machine, content[machine.asset_id]) for machine in ready]
+    return SignPlan(signs, incomplete)
+
+
+def describe_incomplete(incomplete: Iterable[IncompleteMachine]) -> list[str]:
+    return [f"{i.machine.asset_id} {i.machine.name}: {i.reason}" for i in incomplete]
+
+
 def describe_floor(report: FloorReport) -> list[str]:
     """Return what to tell a person about the floor."""
     floor_count = len(report.ready) + len(report.incomplete)
     return [
-        *(f"{i.machine.asset_id} {i.machine.name}: {i.reason}" for i in report.incomplete),
+        *describe_incomplete(report.incomplete),
         *(f"{m.asset_id} {m.name}: unknown location {m.location}" for m in report.unplaced),
         *(
             f"{asset_id}: in the machine data, but not in FlipFix"

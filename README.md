@@ -42,6 +42,18 @@ uv run signs check-machines
 
 It exits 1 if it finds any. `--data` reads a different CSV.
 
+## Printing machine signs
+
+Set `SIGNS_MACHINE_TEMPLATE` to the default Scribus template, under `[env]` in `mise.local.toml`. Then, from the repo root:
+
+```bash
+uv run signs render-machines                # Everything ready on the floor
+uv run signs render-machines M0017          # One changed sign
+uv run signs render-machines --template portrait.sla M0012 M0014 -o portrait.pdf
+```
+
+Signs go into one PDF, `machine-signs.pdf` by default. Any sign that can't be printed is listed and left out, and the command exits 1, though the PDF of the rest is still written.
+
 ## Fonts
 
 Open fonts are included. Fonts that can't be redistributed, such as Arial, must never be committed, because this repo is public. Put your licensed copies in `~/.local/share/signs/fonts`, or set `SIGNS_LICENSED_FONT_DIR` to another directory.
