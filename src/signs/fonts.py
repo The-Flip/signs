@@ -53,19 +53,23 @@ def font_environment() -> Iterator[dict[str, str]]:
         yield {**os.environ, "FONTCONFIG_FILE": str(config)}
 
 
+def split_outside_quotes(text: str, separator: str) -> list[str]:
+    """Split CSS text, keeping quoted strings whole."""
+    return re.findall(rf"""(?:'[^']*'|"[^"]*"|[^{separator}'"])+""", text)
+
+
 def own_font_family(element: Element) -> str | None:
     """Return the first font family set directly on an element, if any.
 
     The style attribute wins over the presentation attribute, as it does in SVG.
     """
     declared = element.get("font-family")
-    for declaration in element.get("style", "").split(";"):
+    for declaration in split_outside_quotes(element.get("style", ""), ";"):
         name, _, value = declaration.partition(":")
         if name.strip() == "font-family":
             declared = value
-    if declared is None:
-        return None
-    return declared.split(",")[0].strip().strip("'\"")
+    families = split_outside_quotes(declared or "", ",")
+    return families[0].strip().strip("'\"") if families else None
 
 
 def text_families(

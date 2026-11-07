@@ -18,6 +18,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 SVG = FIXTURES / "staff-only.svg"
 SLA_WITHOUT_IMAGES = FIXTURES / "donation-box.sla"
 SLA_WITH_IMAGE = FIXTURES / "machine-sign.sla"
+SLA_WITH_GROUP = FIXTURES / "grouped-frames.sla"
 LOGO = "TheFlip_logo_large_turquoise.png"
 
 
@@ -153,3 +154,13 @@ def test_cli_lists_problems_and_fails(tmp_path: Path) -> None:
     assert result.exit_code == 1
     assert "Font not available: No Such Font" in result.stderr
     assert "Licensed fonts go in" in result.stderr
+
+
+def test_grouped_frames_are_refused(tmp_path: Path) -> None:
+    output = tmp_path / "sign.pdf"
+
+    with pytest.raises(TemplateCheckError) as caught:
+        render(SLA_WITH_GROUP, output)
+
+    assert problem_kinds(caught.value) == {"group"}
+    assert not output.exists()

@@ -48,3 +48,26 @@ def test_image_that_is_not_a_local_file_is_reported(tmp_path: Path, href: str) -
     svg = write_svg(tmp_path, href)
 
     assert check_svg_images(svg) == [Problem(ProblemKind.IMAGE, f"Image not found: {href}")]
+
+
+def write_svg_with_both_links(tmp_path: Path, href: str, xlink_href: str) -> Path:
+    path = tmp_path / "sign.svg"
+    path.write_text(
+        f'<svg xmlns="http://www.w3.org/2000/svg" {XLINK}>'
+        f'<image href="{href}" xlink:href="{xlink_href}"/></svg>'
+    )
+    return path
+
+
+def test_href_wins_over_xlink_href(tmp_path: Path) -> None:
+    (tmp_path / "old.png").touch()
+    svg = write_svg_with_both_links(tmp_path, "new.png", "old.png")
+
+    assert check_svg_images(svg) == [Problem(ProblemKind.IMAGE, "Image not found: new.png")]
+
+
+def test_empty_href_is_reported_even_with_a_good_xlink_href(tmp_path: Path) -> None:
+    (tmp_path / "old.png").touch()
+    svg = write_svg_with_both_links(tmp_path, "", "old.png")
+
+    assert check_svg_images(svg) == [Problem(ProblemKind.IMAGE, "Image not found: ")]

@@ -42,7 +42,8 @@ def is_image_available(href: str, svg_path: Path) -> bool:
 def check_svg_images(svg_path: Path) -> list[Problem]:
     problems = []
     for element in parse_svg(svg_path).iter():
-        href = element.get(XLINK_HREF) or element.get("href")
-        if local_name(element) == "image" and href and not is_image_available(href, svg_path):
+        href = element.get("href", element.get(XLINK_HREF))
+        is_image = local_name(element) == "image"
+        if is_image and href is not None and not is_image_available(href, svg_path):
             problems.append(Problem(ProblemKind.IMAGE, f"Image not found: {href}"))
     return problems

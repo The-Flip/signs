@@ -141,3 +141,24 @@ def test_relative_licensed_font_dir_is_made_absolute(
     monkeypatch.setenv(LICENSED_FONT_DIR_VARIABLE, "licensed")
 
     assert licensed_font_dir() == tmp_path / "licensed"
+
+
+@pytest.mark.parametrize(
+    ("style", "family"),
+    [
+        ("font-family:'serif; Missing';fill:red", "serif; Missing"),
+        ("font-family:'Acme, Inc', sans-serif", "Acme, Inc"),
+        ('font-family:"Acme; Inc", sans-serif', "Acme; Inc"),
+    ],
+)
+def test_quoted_family_name_is_read_whole(tmp_path: Path, style: str, family: str) -> None:
+    quoted = style.replace('"', "&quot;")
+    svg = write_svg(tmp_path, f'<text style="{quoted}">Hello</text>')
+
+    assert text_font_families(svg) == {family}
+
+
+def test_empty_font_family_counts_as_no_font(tmp_path: Path) -> None:
+    svg = write_svg(tmp_path, '<text style="font-family:">Hello</text>')
+
+    assert text_font_families(svg) == set()

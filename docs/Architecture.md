@@ -46,6 +46,7 @@ Known limits:
 - The cut-off text check assumes frames aren't linked. No current template links frames.
 - SVG fonts set in `<style>` blocks aren't seen, and SVG text with no font set uses Inkscape's default. No current template does the former.
 - SLA checks skip master pages. No current template has images there.
+- SLA templates with grouped frames are refused, because Scribus doesn't list the frames inside a group, so they can't be checked.
 - An empty SLA image frame passes, because it may be a deliberate placeholder.
 
 All external programs run through `run_tool` in `tools.py`, which handles timeouts and interrupts by killing the whole process group.

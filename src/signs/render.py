@@ -23,12 +23,12 @@ def describe_problems(problems: Sequence[Problem]) -> list[str]:
 
 def publish(staged: Path, dest: Path) -> None:
     """Put a finished PDF in place in one step, so a failed copy can't leave half a sign."""
-    unfinished = dest.with_name(f".{dest.name}.tmp")
     try:
-        shutil.copyfile(staged, unfinished)
-        unfinished.replace(dest)
+        with TemporaryDirectory(dir=dest.parent, prefix=f".{dest.name}.") as work:
+            unfinished = Path(work) / dest.name
+            shutil.copyfile(staged, unfinished)
+            unfinished.replace(dest)
     except OSError as error:
-        unfinished.unlink(missing_ok=True)
         raise RenderError(f"Could not write {dest}: {error}") from error
 
 
@@ -43,6 +43,8 @@ def render(source: Path, dest: Path) -> None:
         raise RenderError(f"Output path is a directory: {dest}")
     if dest.suffix.lower() != ".pdf":
         raise RenderError(f"Output must be a .pdf file: {dest}")
+    if dest.exists() and dest.samefile(source):
+        raise RenderError(f"Output would replace the template: {dest}")
 
     with font_environment() as env, TemporaryDirectory(prefix="signs-render-") as work:
         staged = Path(work) / "sign.pdf"

@@ -15,6 +15,7 @@ import scribus
 
 IMAGE_FRAME = 2
 TEXT_FRAME = 4
+GROUP = 12
 SNIPPET_LENGTH = 40
 
 
@@ -55,6 +56,9 @@ def frame_problem(page: int, frame: str, frame_type: int, source: str) -> dict[s
         return overflow_problem(page, frame)
     if frame_type == IMAGE_FRAME:
         return image_problem(page, frame, source)
+    if frame_type == GROUP:
+        # `getPageItems()` doesn't list the frames in a group, so they can't be checked
+        return problem("group", f"Page {page}: ungroup {frame} so its frames can be checked")
     return None
 
 
