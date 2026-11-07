@@ -1,9 +1,13 @@
 """Command-line interface for signs."""
 
 from importlib.metadata import version
+from pathlib import Path
 from typing import Annotated
 
 import typer
+
+from signs.problems import RenderError, TemplateCheckError
+from signs.render import describe_problems, render
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -27,3 +31,25 @@ def main(
     ] = False,
 ) -> None:
     """Manage and print the museum's signs."""
+
+
+@app.command("render")
+def render_sign(
+    source: Annotated[Path, typer.Argument(help="Template to render (.svg or .sla).")],
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="PDF to write. Defaults to SOURCE's name, here."),
+    ] = None,
+) -> None:
+    """Render a template to PDF, refusing if its checks fail."""
+    dest = output or Path(f"{source.stem}.pdf")
+    try:
+        render(source, dest)
+    except TemplateCheckError as error:
+        for line in describe_problems(error.problems):
+            typer.echo(line, err=True)
+        raise typer.Exit(1) from error
+    except RenderError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(1) from error
+    typer.echo(f"Wrote {dest}")
