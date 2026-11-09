@@ -157,7 +157,9 @@ signs/
 │   ├── fonts.py   # Font setup, and the SVG font check
 │   ├── svg.py     # SVG parsing, and the SVG image check
 │   ├── flipfix.py  # Reads machines from the FlipFix API
-│   ├── machines.py  # Sign content, and which floor machines are ready
+│   ├── machines.py  # Sign content, and which machines are ready
+│   ├── sla_fill.py  # Fills a Scribus template for one machine
+│   ├── machine_signs.py  # Renders machine signs into one PDF
 │   ├── problems.py  # Shared errors and check results
 │   ├── tools.py   # The only place that runs external programs
 │   ├── fonts/     # Bundled fonts
