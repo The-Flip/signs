@@ -195,3 +195,11 @@ def test_naming_a_machine_twice_prints_it_once() -> None:
     plan = plan_signs([ON_FLOOR], {"M0001": WRITTEN}, ["M0001", "m0001"])
 
     assert [sign.machine for sign in plan.signs] == [ON_FLOOR]
+
+
+def test_naming_matches_any_case_of_the_flipfix_id() -> None:
+    lower_case = Machine("m0050", "Lower Case", "Museum")
+
+    plan = plan_signs([lower_case], {"m0050": WRITTEN}, ["M0050", "m0050"])
+
+    assert [sign.machine for sign in plan.signs] == [lower_case]

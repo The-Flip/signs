@@ -111,9 +111,10 @@ def plan_signs(
     asset_ids: Iterable[str] = (),
 ) -> SignPlan:
     """Choose the signs to print: the named machines, or else everything on the floor."""
+    # People type asset ids in any case, so match them without it.
     named = list(dict.fromkeys(asset_id.upper() for asset_id in asset_ids))
     if named:
-        by_id = {machine.asset_id: machine for machine in machines}
+        by_id = {machine.asset_id.upper(): machine for machine in machines}
         unknown = [asset_id for asset_id in named if asset_id not in by_id]
         if unknown:
             raise MachineDataError(f"FlipFix has no machine {', '.join(unknown)}")
