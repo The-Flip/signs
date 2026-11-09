@@ -1,4 +1,4 @@
-"""Errors and check results shared by the renderers."""
+"""Errors and check results shared across the app."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -20,6 +20,10 @@ class Problem:
 
     kind: ProblemKind
     message: str
+
+
+class MachineDataError(Exception):
+    """Machine data could not be read."""
 
 
 class RenderError(Exception):

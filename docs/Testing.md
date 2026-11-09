@@ -15,6 +15,6 @@ Integration tests are marked `integration` and drive the real Inkscape and Scrib
 - Name tests for the behavior they verify, e.g. `test_version_flag_prints_installed_version`.
 - Test CLI commands through Typer's `CliRunner`, and keep detailed behavior tests against the library code.
 - Prefer real inputs and real output over mocks. Write generated files to pytest's `tmp_path`.
-- Don't mock without a clear reason, such as a slow or unavailable external service.
+- Don't mock without a clear reason, such as a slow or unavailable external service. FlipFix is the one service we fake: pass `httpx.MockTransport` to `fetch_machines`, and replace `cli.fetch_machines` in CLI tests.
 - Keep rendering fixtures in `tests/fixtures/` as real templates, and build failure cases by editing a copy in `tmp_path`.
 - When testing that a check does NOT fire, confirm the test reaches the check: temporarily make the check report a problem for that input, and see the test fail.

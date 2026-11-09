@@ -71,10 +71,10 @@ Examples:
 
 STOP and read the relevant doc before writing code. Code that doesn't follow documented patterns will need to be rewritten.
 
-| Task                            | Read First                                     |
-| ------------------------------- | ---------------------------------------------- |
-| Architecture, rendering, checks | [`docs/Architecture.md`](docs/Architecture.md) |
-| Writing tests                   | [`docs/Testing.md`](docs/Testing.md)           |
+| Task                                          | Read First                                     |
+| --------------------------------------------- | ---------------------------------------------- |
+| Architecture, rendering, checks, machine data | [`docs/Architecture.md`](docs/Architecture.md) |
+| Writing tests                                 | [`docs/Testing.md`](docs/Testing.md)           |
 
 Follow the patterns in these docs exactly. Do not introduce new conventions without asking. Update docs when changing behavior.
 
@@ -180,6 +180,7 @@ This project is in this GitHub repo: <https://github.com/The-Flip/signs>
 
 ```text
 signs/
+├── data/          # Machine sign content, until the app has a data store
 ├── docs/          # Project docs, including the source for CLAUDE.md and AGENTS.md
 ├── scripts/       # Development scripts
 ├── src/signs/     # Application package
@@ -188,6 +189,8 @@ signs/
 │   ├── *_export.py  # One exporter per app
 │   ├── fonts.py   # Font setup, and the SVG font check
 │   ├── svg.py     # SVG parsing, and the SVG image check
+│   ├── flipfix.py  # Reads machines from the FlipFix API
+│   ├── machines.py  # Sign content, and which floor machines are ready
 │   ├── problems.py  # Shared errors and check results
 │   ├── tools.py   # The only place that runs external programs
 │   ├── fonts/     # Bundled fonts

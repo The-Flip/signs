@@ -30,6 +30,18 @@ uv run signs render tests/fixtures/donation-box.sla -o sign.pdf
 
 If a template has a missing font or image, or cut-off text in a Scribus file, `signs render` lists the problems and writes no PDF. See the known limits in [`docs/Architecture.md`](docs/Architecture.md).
 
+## Checking machine signs
+
+Set `FLIPFIX_API_KEY` to a [FlipFix API key](https://github.com/The-Flip/flipfix/blob/main/docs/API.md#obtaining-a-key), under `[env]` in `mise.local.toml`, which git ignores.
+
+Then, from the repo root, list the floor machines that aren't ready for a sign:
+
+```bash
+uv run signs check-machines
+```
+
+It exits 1 if it finds any. `--data` reads a different CSV.
+
 ## Fonts
 
 Open fonts are included. Fonts that can't be redistributed, such as Arial, must never be committed, because this repo is public. Put your licensed copies in `~/.local/share/signs/fonts`, or set `SIGNS_LICENSED_FONT_DIR` to another directory.
